@@ -2,42 +2,31 @@
 // © 2024-present https://github.com/cengiz-pz
 //
 
-import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
-	id("com.android.library")
-	id("org.jetbrains.kotlin.android") version "2.0.10"
+	alias(libs.plugins.android.library)
+	alias(libs.plugins.kotlin.android)
+	alias(libs.plugins.undercouch.download)
 }
 
-val pluginNodeName = "Admob"
-val pluginName = pluginNodeName + "Plugin"
-val pluginPackageName = "org.godotengine.plugin.android.admob"
-val godotVersion = "4.4.1"
-val pluginVersion = "4.0"
-val targetOs = "android"
-val demoAddOnsDirectory = "../../demo/addons"
-val templateDirectory = "../../addon"
-val pluginDependencies = arrayOf(
-	"androidx.appcompat:appcompat:1.7.0",
-	"com.google.android.gms:play-services-ads:24.0.0"
-)
+apply(from = "${rootDir}/config.gradle.kts")
 
 android {
-	namespace = pluginPackageName
-	compileSdk = 34
+	namespace = project.extra["pluginPackageName"] as String
+	compileSdk = libs.versions.compileSdk.get().toInt()
 
 	buildFeatures {
 		buildConfig = true
 	}
 
 	defaultConfig {
-		minSdk = 23
+		minSdk = libs.versions.minSdk.get().toInt()
 
-		manifestPlaceholders["godotPluginName"] = pluginName
-		manifestPlaceholders["godotPluginPackageName"] = pluginPackageName
-		buildConfigField("String", "GODOT_PLUGIN_NAME", "\"${pluginName}\"")
-		setProperty("archivesBaseName", "$pluginName")
+		manifestPlaceholders["godotPluginName"] = project.extra["pluginName"] as String
+		manifestPlaceholders["godotPluginPackageName"] = project.extra["pluginPackageName"] as String
+		buildConfigField("String", "GODOT_PLUGIN_NAME", "\"${project.extra["pluginName"]}\"")
+		setProperty("archivesBaseName", project.extra["pluginName"] as String)
 	}
 
 	compileOptions {
@@ -45,86 +34,97 @@ android {
 		targetCompatibility = JavaVersion.VERSION_17
 	}
 
-	kotlinOptions {
-		jvmTarget = "17"
+	kotlin {
+		compilerOptions {
+			jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+		}
 	}
+
+	buildToolsVersion = libs.versions.buildTools.get()
 }
 
+val pluginDependencies = arrayOf(
+	libs.androidx.appcompat.get(),
+	libs.play.services.ads.get()
+)
+
 dependencies {
-	implementation("org.godotengine:godot:$godotVersion.stable")
+	implementation("godot:godot-lib:${project.extra["godotVersion"]}.${project.extra["releaseType"]}@aar")
 	pluginDependencies.forEach { implementation(it) }
 }
 
-val copyDebugAARToDemoAddons by tasks.registering(Copy::class) {
-	description = "Copies the generated debug AAR binary to the plugin's addons directory"
-	from("build/outputs/aar")
-	include("$pluginName-debug.aar")
-	into("$demoAddOnsDirectory/$pluginName/bin/debug")
-}
-
-val copyReleaseAARToDemoAddons by tasks.registering(Copy::class) {
-	description = "Copies the generated release AAR binary to the plugin's addons directory"
-	from("build/outputs/aar")
-	include("$pluginName-release.aar")
-	into("$demoAddOnsDirectory/$pluginName/bin/release")
-}
-
-val cleanDemoAddons by tasks.registering(Delete::class) {
-	delete("$demoAddOnsDirectory/$pluginName")
-}
-
-val copyPngsToDemo by tasks.registering(Copy::class) {
-	description = "Copies the PNG images to the plugin's addons directory"
-	from(templateDirectory)
-	into("$demoAddOnsDirectory/$pluginName")
-	include("**/*.png")
-}
-
-val copyAddonsToDemo by tasks.registering(Copy::class) {
-	description = "Copies the export scripts templates to the plugin's addons directory"
-
-	dependsOn(cleanDemoAddons)
-	finalizedBy(copyDebugAARToDemoAddons)
-	finalizedBy(copyReleaseAARToDemoAddons)
-	finalizedBy(copyPngsToDemo)
-
-	from(templateDirectory)
-	into("$demoAddOnsDirectory/$pluginName")
-	include("**/*.gd")
-	include("**/*.cfg")
-	var dependencyString = ""
-	for (i in pluginDependencies.indices) {
-		dependencyString += "\"${pluginDependencies[i]}\""
-		if (i < pluginDependencies.size-1) dependencyString += ", "
+tasks {
+	register<Copy>("copyDebugAARToDemoAddons") {
+		description = "Copies the generated debug AAR binary to the plugin's addons directory"
+		from("build/outputs/aar")
+		include("${project.extra["pluginName"]}-debug.aar")
+		into("${project.extra["demoAddOnsDirectory"]}/${project.extra["pluginName"]}/bin/debug")
 	}
-	filter(ReplaceTokens::class,
-		"tokens" to mapOf(
-			"pluginName" to pluginName,
-			"pluginNodeName" to pluginNodeName,
-			"pluginVersion" to pluginVersion,
-			"pluginPackage" to pluginPackageName,
-			"targetOs" to targetOs,
-			"pluginDependencies" to dependencyString))
-}
 
-tasks.register<Zip>("packageDistribution") {
-	archiveFileName.set("${pluginName}-${pluginVersion}.zip")
-	destinationDirectory.set(layout.buildDirectory.dir("dist"))
-
-	from("${demoAddOnsDirectory}/${pluginName}") {
-		into("${pluginName}-root/addons/${pluginName}")
+	register<Copy>("copyReleaseAARToDemoAddons") {
+		description = "Copies the generated release AAR binary to the plugin's addons directory"
+		from("build/outputs/aar")
+		include("${project.extra["pluginName"]}-release.aar")
+		into("${project.extra["demoAddOnsDirectory"]}/${project.extra["pluginName"]}/bin/release")
 	}
-}
 
-tasks.named<Delete>("clean").apply {
-	dependsOn(cleanDemoAddons)
+	register<Delete>("cleanDemoAddons") {
+		delete("${project.extra["demoAddOnsDirectory"]}/${project.extra["pluginName"]}")
+	}
+
+	register<Copy>("copyPngsToDemo") {
+		description = "Copies the PNG images to the plugin's addons directory"
+		from(project.extra["templateDirectory"] as String)
+		into("${project.extra["demoAddOnsDirectory"]}/${project.extra["pluginName"]}")
+		include("**/*.png")
+	}
+
+	register<Copy>("copyAddonsToDemo") {
+		description = "Copies the export scripts templates to the plugin's addons directory"
+		dependsOn("cleanDemoAddons")
+		finalizedBy("copyDebugAARToDemoAddons", "copyReleaseAARToDemoAddons", "copyPngsToDemo")
+
+		from(project.extra["templateDirectory"] as String)
+		into("${project.extra["demoAddOnsDirectory"]}/${project.extra["pluginName"]}")
+		include("**/*.gd")
+		include("**/*.cfg")
+		filter<ReplaceTokens>("tokens" to  mapOf(
+			"pluginName" to (project.extra["pluginName"] as String),
+			"pluginNodeName" to (project.extra["pluginNodeName"] as String),
+			"pluginVersion" to (project.extra["pluginVersion"] as String),
+			"pluginPackage" to (project.extra["pluginPackageName"] as String),
+			"pluginDependencies" to pluginDependencies.joinToString(", ") { "\"$it\"" }
+		))
+	}
+
+	register<de.undercouch.gradle.tasks.download.Download>("downloadGodotAar") {
+		src(project.extra["godotAarUrl"] as String)
+		dest(file("${project.rootDir}/libs/${project.extra["godotAarFile"]}"))
+		overwrite(false)
+	}
+
+	named("preBuild") {
+		dependsOn("downloadGodotAar")
+	}
+
+	register<Zip>("packageDistribution") {
+		archiveFileName.set("${project.extra["pluginName"]}-${project.extra["pluginVersion"]}.zip")
+		destinationDirectory.set(layout.buildDirectory.dir("dist"))
+		from("${project.extra["demoAddOnsDirectory"]}/${project.extra["pluginName"]}") {
+			into("${project.extra["pluginName"]}-root/addons/${project.extra["pluginName"]}")
+		}
+	}
+
+	named<Delete>("clean") {
+		dependsOn("cleanDemoAddons")
+	}
 }
 
 afterEvaluate {
-	tasks.named("assembleDebug").configure {
-		finalizedBy(copyAddonsToDemo)
+	tasks.named("assembleDebug") {
+		finalizedBy("copyAddonsToDemo")
 	}
-	tasks.named("assembleRelease").configure {
-		finalizedBy(copyAddonsToDemo)
+	tasks.named("assembleRelease") {
+		finalizedBy("copyAddonsToDemo")
 	}
 }
