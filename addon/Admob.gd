@@ -46,7 +46,6 @@ signal tracking_authorization_granted
 signal tracking_authorization_denied
 
 const PLUGIN_SINGLETON_NAME: String = "@pluginName@"
-const PLUGIN_TARGET_OS: String = "@targetOs@"
 
 @export_category("General")
 @export var is_real: bool: set = set_is_real
@@ -148,10 +147,8 @@ func _update_plugin() -> void:
 		if Engine.has_singleton(PLUGIN_SINGLETON_NAME):
 			_plugin_singleton = Engine.get_singleton(PLUGIN_SINGLETON_NAME)
 			_connect_signals()
-		elif OS.has_feature(PLUGIN_TARGET_OS):
+		elif not OS.has_feature("editor_hint"):
 			printerr("%s singleton not found!" % PLUGIN_SINGLETON_NAME)
-		else:
-			printerr("%s should be run on %s!" % [PLUGIN_SINGLETON_NAME, PLUGIN_TARGET_OS])
 
 
 func _connect_signals() -> void:

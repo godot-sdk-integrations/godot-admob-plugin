@@ -15,9 +15,11 @@ dependencyResolutionManagement {
 	repositories {
 		google()
 		mavenCentral()
+		flatDir {
+			dirs("${rootDir}/libs")
+		}
 	}
 }
 
-rootProject.name = "godot-android-admob-plugin"
-
+rootProject.name = "godot-admob-plugin"
 include(":admob")
