@@ -5,9 +5,10 @@
 extra.apply {
 	// Plugin details
 	set("pluginNodeName", "Admob")
-	set("pluginName", get("pluginNodeName") as String + "Plugin")
+	set("pluginName", "${get("pluginNodeName")}Plugin")
 	set("pluginPackageName", "org.godotengine.plugin.android.admob")
 	set("pluginVersion", "5.0")
+	set("pluginArchive", "${get("pluginName")}-${get("pluginVersion")}-Android.zip")
 
 	// Godot
 	set("godotVersion", "4.5")

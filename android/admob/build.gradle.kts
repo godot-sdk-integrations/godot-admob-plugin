@@ -108,7 +108,7 @@ tasks {
 	}
 
 	register<Zip>("packageDistribution") {
-		archiveFileName.set("${project.extra["pluginName"]}-${project.extra["pluginVersion"]}.zip")
+		archiveFileName.set("${project.extra["pluginArchive"]}")
 		destinationDirectory.set(layout.buildDirectory.dir("dist"))
 		from("${project.extra["demoAddOnsDirectory"]}/${project.extra["pluginName"]}") {
 			into("${project.extra["pluginName"]}-root/addons/${project.extra["pluginName"]}")
