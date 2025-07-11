@@ -23,7 +23,7 @@ var _is_rewarded_interstitial_loaded: bool = false
 
 
 func _ready() -> void:
-	admob.initialize()
+	_process_consent_status(admob.get_consent_status())
 
 	var __index: int = 0
 	for __item: String in LoadAdRequest.AdPosition.keys():
@@ -41,7 +41,6 @@ func _ready() -> void:
 
 
 func _on_admob_initialization_completed(_status_data: InitializationStatus) -> void:
-	_process_consent_status(admob.get_consent_status())
 	admob.load_banner_ad()
 	admob.load_interstitial_ad()
 	admob.load_rewarded_ad()
@@ -208,11 +207,13 @@ func _process_consent_status(a_consent_status: int) -> void:
 				.add_test_device_hashed_id(OS.get_unique_id()))
 		ConsentInformation.ConsentStatus.NOT_REQUIRED:
 			_print_to_screen("consent is not required")
+			admob.initialize()
 		ConsentInformation.ConsentStatus.REQUIRED:
 			_print_to_screen("consent is required")
 			admob.load_consent_form()
 		ConsentInformation.ConsentStatus.OBTAINED:
-			_print_to_screen("consent has already been obtained")
+			_print_to_screen("consent has been obtained")
+			admob.initialize()
 
 
 func _on_admob_consent_form_loaded() -> void:
@@ -233,10 +234,6 @@ func _on_update_consent_info_button_pressed() -> void:
 	admob.update_consent_info(ConsentRequestParameters.new()
 		.set_debug_geography(ConsentRequestParameters.DebugGeography.values()[_geography_option_button.selected])
 		.add_test_device_hashed_id(OS.get_unique_id()))
-
-
-func _on_scene_2_button_pressed() -> void:
-	get_tree().change_scene_to_file("res://scene/Scene2.tscn")
 
 
 func _print_to_screen(a_message: String, a_is_error: bool = false) -> void:
