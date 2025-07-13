@@ -523,9 +523,12 @@ int AdmobPlugin::get_consent_status() {
 	UMPConsentStatus status = [UMPConsentInformation.sharedInstance consentStatus];
 	os_log_debug(admob_log, "AdmobPlugin get_consent_status: %ld", (long) status);
 	switch (status) {
-		case UMPConsentStatusUnknown:
+		// Reversing UMPConsentStatusRequired and UMPConsentStatusNotRequired values for consistency with the Android version.
 		case UMPConsentStatusRequired:
+			return UMPConsentStatusNotRequired;
 		case UMPConsentStatusNotRequired:
+			return UMPConsentStatusRequired;
+		case UMPConsentStatusUnknown:
 		case UMPConsentStatusObtained:
 			return status;
 		default:
