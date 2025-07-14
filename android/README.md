@@ -81,10 +81,39 @@ ___
 
 ___
 
-## ![](../addon/icon.png?raw=true) Refreshing addon submodule
+## ![](../addon/icon.png?raw=true) Building plugin
 
-- Remove `admob/addon_template` directory
-- Run `git submodule update --remote --merge`
+There are two ways to build this plugin for the Android platform.
+
+## ![](../addon/icon.png?raw=true) Android Studio
+
+- Load the gradle project under the `android` directory into `Android Studio`
+	- select build variant (debug or release)
+	- select the `Assemble Project` item of `Build Menu`.
+
+## ![](../addon/icon.png?raw=true) Bash Script
+
+- Create a `local.properties` file under the `android` that contains the `sdk.dir` value.
+	- ie. `sdk.dir=/usr/lib/android-sdk`
+- Run build script with `-a` option from project root.
+	- ie. `./script/build.sh -ca` for debug build.
+	- or `./script/build.sh -car` for release build.
+
+## ![](../addon/icon.png?raw=true) Creating a release archive
+
+There are two ways to create a release archive for this plugin targeting the Android platform.
+
+*_Prior to creating the archive, make sure that both the `debug` and `release` build variants have been built._
+
+## ![](../addon/icon.png?raw=true) Android Studio
+
+- From `Android Studio`
+	- run the `packageDistribution` gradle task.
+
+## ![](../addon/icon.png?raw=true) Bash Script
+
+- Run build script with `-z` option from project root.
+	- ie. `./script/build.sh -z`
 
 <br/><br/>
 
