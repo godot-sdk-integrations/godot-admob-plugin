@@ -142,10 +142,10 @@ After setting this scene as an `Autoload`, the `Admob Plugin` methods can be inv
 AdManager.admob_node.show_banner()
 ```
 
-## ![](../addon/icon.png?raw=true) Export
+## ![](addon/icon.png?raw=true) Export
 Both `Android` and `iOS` exports require several configuration settings.
 
-### ![](admob/addon_template/icon.png?raw=true) File-based Export Configuration
+### ![](addon/icon.png?raw=true) File-based Export Configuration
 In order to enable file-based export configuration, an `export.cfg` file should be placed in the `addons/AdmobPlugin` directory with the file contents formatted as in the example below:
 
 ```
@@ -167,7 +167,7 @@ att_text = "My ATT text."
 
 The `is_real` and `app_id` configuration items are mandatory and if not found in the `export.cfg` file, then the plugin will fall back to node-based configuration.
 
-### ![](admob/addon_template/icon.png?raw=true) Node-based Export Configuration
+### ![](addon/icon.png?raw=true) Node-based Export Configuration
 If `export.cfg` file is not found or file-based configuration fails, then the plugin will attempt to load node-based configuration.
 
 During export, the plugin searches for an `Admob` node in the scene that is open in the Godot Editor.  If not found, then the plugin searches for an `Admob` node in the project's main scene.  Therefore; 
